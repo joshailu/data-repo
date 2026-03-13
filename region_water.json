@@ -1,0 +1,130 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v6.json",
+    "description": "Marine Regions / IHO sea areas rendered from TopoJSON.",
+    "width": 960,
+    "height": 540,
+    "autosize": "none",
+    "background": "white",
+
+    "title": {
+        "text": "World Oceans and Seas",
+        "subtitle": "Marine Regions / IHO Sea Areas",
+        "anchor": "start",
+        "fontSize": 18,
+        "subtitleFontSize": 12
+    },
+
+    "signals": [
+        {
+            "name": "projectionType",
+            "value": "mercator",
+            "bind": {
+                "input": "select",
+                "options": [
+                    "naturalEarth1",
+                    "equalEarth",
+                    "mercator",
+                    "orthographic"
+                ]
+            }
+        },
+        {
+            "name": "mapScale",
+            "value": 5000,
+            "bind": { "input": "range", "min": 100, "max": 5000, "step": 1 }
+        },
+        {
+            "name": "hoveredName",
+            "value": null,
+            "on": [
+                {
+                    "events": "shape:mouseover",
+                    "update": "datum.properties.NAME"
+                },
+                { "events": "shape:mouseout", "update": "null" }
+            ]
+        }
+    ],
+
+    "projections": [
+        {
+            "name": "projection",
+            "type": { "signal": "projectionType" },
+            "scale": { "signal": "mapScale" },
+            "translate": [{ "signal": "width / 2" }, { "signal": "height / 2" }]
+        }
+    ],
+
+    "data": [
+        {
+            "name": "sphere",
+            "values": [{ "type": "Sphere" }]
+        },
+        {
+            "name": "graticule",
+            "transform": [{ "type": "graticule", "step": [20, 20] }]
+        },
+        {
+            "name": "seas",
+            "url": "https://cdn.jsdelivr.net/npm/oceans-seas.geojson@0.5.0/oceans-seas.topo.json",
+            "format": {
+                "type": "topojson",
+                "feature": "oceans-seas.geo"
+            }
+        }
+    ],
+
+    "marks": [
+        {
+            "type": "shape",
+            "from": { "data": "sphere" },
+            "transform": [{ "type": "geoshape", "projection": "projection" }],
+            "encode": {
+                "update": {
+                    "fill": { "value": "#eb4034" },
+                    "stroke": { "value": null }
+                }
+            }
+        },
+
+        {
+            "name": "shape",
+            "type": "shape",
+            "from": { "data": "seas" },
+            "transform": [{ "type": "geoshape", "projection": "projection" }],
+            "encode": {
+                "enter": {
+                    "stroke": { "value": "#4a6b82" },
+                    "strokeWidth": { "value": 0.7 },
+                    "cursor": { "value": "pointer" }
+                },
+                "update": {
+                    "fill": [
+                        {
+                            "test": "hoveredName && datum.properties.NAME === hoveredName",
+                            "value": "#69b3d7"
+                        },
+                        { "value": "#b9dced" }
+                    ],
+                    "tooltip": {
+                        "signal": "{'Name': datum.properties.NAME, 'Area': datum.properties.area}"
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "encode": {
+                "update": {
+                    "x": { "value": 12 },
+                    "y": { "value": 24 },
+                    "text": {
+                        "signal": "hoveredName ? 'Hovered: ' + hoveredName : 'Hover a sea or ocean region'"
+                    },
+                    "fontSize": { "value": 13 },
+                    "fill": { "value": "#35566b" }
+                }
+            }
+        }
+    ]
+}

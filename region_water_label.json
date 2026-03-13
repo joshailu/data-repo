@@ -1,0 +1,193 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v6.json",
+    "description": "Marine Regions / IHO sea areas with label anchor points and sample point tooltips.",
+    "width": 960,
+    "height": 540,
+    "autosize": "none",
+    "background": "white",
+
+    "title": {
+        "text": "World Oceans and Seas",
+        "subtitle": "TopoJSON polygons + projected label points",
+        "anchor": "start",
+        "fontSize": 18,
+        "subtitleFontSize": 12
+    },
+
+    "signals": [
+        {
+            "name": "projectionType",
+            "value": "naturalEarth1",
+            "bind": {
+                "input": "select",
+                "options": [
+                    "naturalEarth1",
+                    "equalEarth",
+                    "mercator",
+                    "orthographic"
+                ]
+            }
+        },
+        {
+            "name": "mapScale",
+            "value": 170,
+            "bind": { "input": "range", "min": 100, "max": 450, "step": 1 }
+        },
+        {
+            "name": "labelSize",
+            "value": 13,
+            "bind": { "input": "range", "min": 9, "max": 20, "step": 1 }
+        }
+    ],
+
+    "projections": [
+        {
+            "name": "projection",
+            "type": { "signal": "projectionType" },
+            "scale": { "signal": "mapScale" },
+            "translate": [{ "signal": "width / 2" }, { "signal": "height / 2" }]
+        }
+    ],
+
+    "data": [
+        {
+            "name": "sphere",
+            "values": [{ "type": "Sphere" }]
+        },
+        {
+            "name": "graticule",
+            "transform": [{ "type": "graticule", "step": [20, 20] }]
+        },
+        {
+            "name": "seas",
+            "url": "https://cdn.jsdelivr.net/npm/oceans-seas.geojson@0.5.0/oceans-seas.topo.json",
+            "format": {
+                "type": "topojson",
+                "feature": "oceans-seas.geo"
+            }
+        },
+        {
+            "name": "labels",
+            "values": [
+                { "NAME": "Pacific Ocean", "lon": -150, "lat": 5 },
+                { "NAME": "Atlantic Ocean", "lon": -35, "lat": 10 },
+                { "NAME": "Indian Ocean", "lon": 78, "lat": -18 },
+                { "NAME": "Arctic Ocean", "lon": 0, "lat": 78 },
+                { "NAME": "Southern Ocean", "lon": 20, "lat": -58 },
+                { "NAME": "Mediterranean Sea", "lon": 16, "lat": 35 },
+                { "NAME": "Caribbean Sea", "lon": -75, "lat": 16 },
+                { "NAME": "Arabian Sea", "lon": 64, "lat": 15 },
+                { "NAME": "Bay of Bengal", "lon": 88, "lat": 15 },
+                { "NAME": "South China Sea", "lon": 114, "lat": 13 }
+            ],
+            "transform": [
+                {
+                    "type": "geopoint",
+                    "projection": "projection",
+                    "fields": ["lon", "lat"]
+                }
+            ]
+        },
+        {
+            "name": "points",
+            "values": [
+                {
+                    "name": "Sample buoy",
+                    "lon": 72,
+                    "lat": -12,
+                    "water_body": "Indian Ocean"
+                }
+            ],
+            "transform": [
+                {
+                    "type": "geopoint",
+                    "projection": "projection",
+                    "fields": ["lon", "lat"]
+                }
+            ]
+        }
+    ],
+
+    "marks": [
+        {
+            "type": "shape",
+            "from": { "data": "sphere" },
+            "transform": [{ "type": "geoshape", "projection": "projection" }],
+            "encode": {
+                "update": {
+                    "fill": { "value": "#eef7fb" },
+                    "stroke": { "value": null }
+                }
+            }
+        },
+        {
+            "type": "shape",
+            "from": { "data": "graticule" },
+            "transform": [{ "type": "geoshape", "projection": "projection" }],
+            "encode": {
+                "update": {
+                    "fill": { "value": null },
+                    "stroke": { "value": "#d7e5ee" },
+                    "strokeWidth": { "value": 0.6 }
+                }
+            }
+        },
+        {
+            "type": "shape",
+            "from": { "data": "seas" },
+            "transform": [{ "type": "geoshape", "projection": "projection" }],
+            "encode": {
+                "enter": {
+                    "stroke": { "value": "#4f7086" },
+                    "strokeWidth": { "value": 0.7 }
+                },
+                "update": {
+                    "fill": { "value": "#b9dced" },
+                    "tooltip": {
+                        "signal": "{'Water body': datum.properties.NAME, 'Area': datum.properties.area}"
+                    }
+                },
+                "hover": {
+                    "fill": { "value": "#8fc5df" }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "from": { "data": "labels" },
+            "encode": {
+                "enter": {
+                    "align": { "value": "center" },
+                    "baseline": { "value": "middle" },
+                    "fontWeight": { "value": "bold" },
+                    "fill": { "value": "#28536b" }
+                },
+                "update": {
+                    "x": { "field": "x" },
+                    "y": { "field": "y" },
+                    "fontSize": { "signal": "labelSize" },
+                    "text": { "field": "NAME" }
+                }
+            }
+        },
+        {
+            "type": "symbol",
+            "from": { "data": "points" },
+            "encode": {
+                "enter": {
+                    "size": { "value": 140 },
+                    "fill": { "value": "#d94841" },
+                    "stroke": { "value": "white" },
+                    "strokeWidth": { "value": 1.5 }
+                },
+                "update": {
+                    "x": { "field": "x" },
+                    "y": { "field": "y" },
+                    "tooltip": {
+                        "signal": "{'Point': datum.name, 'Water body': datum.water_body, 'Longitude': datum.lon, 'Latitude': datum.lat}"
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,165 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v6.json",
+    "description": "Natural Earth bathymetry rendered from GeoJSON depth polygons.",
+    "width": 960,
+    "height": 540,
+    "autosize": "none",
+    "background": "white",
+
+    "title": {
+        "text": "Natural Earth Bathymetry",
+        "subtitle": "0, -200, -1000, -2000, -4000, -6000, -10000 m",
+        "anchor": "start",
+        "fontSize": 18,
+        "subtitleFontSize": 12
+    },
+
+    "signals": [
+        {
+            "name": "projectionType",
+            "value": "mercator",
+            "bind": {
+                "input": "select",
+                "options": [
+                    "naturalEarth1",
+                    "equalEarth",
+                    "mercator",
+                    "orthographic"
+                ]
+            }
+        },
+        {
+            "name": "mapScale",
+            "value": 1000,
+            "bind": { "input": "range", "min": 100, "max": 1000, "step": 1 }
+        },
+        {
+            "name": "bathOpacity",
+            "value": 1,
+            "bind": { "input": "range", "min": 0.25, "max": 1, "step": 0.05 }
+        },
+        {
+            "name": "coastWidth",
+            "value": 0.5,
+            "bind": { "input": "range", "min": 0, "max": 2, "step": 0.1 }
+        }
+    ],
+
+    "projections": [
+        {
+            "name": "projection",
+            "type": { "signal": "projectionType" },
+            "scale": { "signal": "mapScale" },
+            "translate": [{ "signal": "width / 2" }, { "signal": "height / 2" }]
+        }
+    ],
+
+    "data": [
+        {
+            "name": "bath0",
+            "url": "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/10m/physical/ne_10m_bathymetry_L_0.json",
+            "format": { "type": "json", "property": "features" }
+        },
+        {
+            "name": "bath200",
+            "url": "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/10m/physical/ne_10m_bathymetry_K_200.json",
+            "format": { "type": "json", "property": "features" }
+        },
+        {
+            "name": "bath1000",
+            "url": "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/10m/physical/ne_10m_bathymetry_J_1000.json",
+            "format": { "type": "json", "property": "features" }
+        },
+        {
+            "name": "bath4000",
+            "url": "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/10m/physical/ne_10m_bathymetry_G_4000.json",
+            "format": { "type": "json", "property": "features" }
+        },
+        {
+            "name": "land",
+            "url": "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/10m/physical/ne_10m_land.json",
+            "format": { "type": "json", "property": "features" }
+        },
+        {
+            "name": "coastline",
+            "url": "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/10m/physical/ne_10m_coastline.json",
+            "format": { "type": "json", "property": "features" }
+        }
+    ],
+
+    "marks": [
+        {
+            "type": "shape",
+            "from": { "data": "bath0" },
+            "encode": {
+                "update": {
+                    "fill": { "value": "#deebf7" },
+                    "fillOpacity": { "signal": "bathOpacity" },
+                    "stroke": { "value": null }
+                }
+            },
+            "transform": [{ "type": "geoshape", "projection": "projection" }]
+        },
+        {
+            "type": "shape",
+            "from": { "data": "bath200" },
+            "encode": {
+                "update": {
+                    "fill": { "value": "#c6dbef" },
+                    "fillOpacity": { "signal": "bathOpacity" },
+                    "stroke": { "value": null }
+                }
+            },
+            "transform": [{ "type": "geoshape", "projection": "projection" }]
+        },
+        {
+            "type": "shape",
+            "from": { "data": "bath1000" },
+            "encode": {
+                "update": {
+                    "fill": { "value": "#9ecae1" },
+                    "fillOpacity": { "signal": "bathOpacity" },
+                    "stroke": { "value": null }
+                }
+            },
+            "transform": [{ "type": "geoshape", "projection": "projection" }]
+        },
+        {
+            "type": "shape",
+            "from": { "data": "bath4000" },
+            "encode": {
+                "update": {
+                    "fill": { "value": "#4292c6" },
+                    "fillOpacity": { "signal": "bathOpacity" },
+                    "stroke": { "value": null }
+                }
+            },
+            "transform": [{ "type": "geoshape", "projection": "projection" }]
+        },
+
+        {
+            "type": "shape",
+            "from": { "data": "land" },
+            "encode": {
+                "update": {
+                    "fill": { "value": "#f6f1e8" },
+                    "stroke": { "value": null }
+                }
+            },
+            "transform": [{ "type": "geoshape", "projection": "projection" }]
+        },
+
+        {
+            "type": "shape",
+            "from": { "data": "coastline" },
+            "encode": {
+                "update": {
+                    "fill": { "value": null },
+                    "stroke": { "value": "#666" },
+                    "strokeWidth": { "signal": "coastWidth" }
+                }
+            },
+            "transform": [{ "type": "geoshape", "projection": "projection" }]
+        }
+    ]
+}
